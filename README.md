@@ -1,6 +1,6 @@
 # n8n Automation Showcase
 
-**3 production-ready workflow patterns** demonstrating how n8n can replace expensive SaaS tools while delivering the same (or better) functionality.
+**4 production-ready workflow patterns** demonstrating how n8n can replace expensive SaaS tools while delivering the same (or better) functionality.
 
 > These are MVP/showcase workflows built for demonstration purposes. They use mock data inputs to ensure reliable execution during live demos without requiring external API connections.
 
@@ -56,6 +56,24 @@
 
 ---
 
+### 4. MEDDPICC Call Analyzer
+**Replaces:** Manual call note-taking, qualification tracking  
+**Cost:** ~$0.01-0.02 per call vs 20 min rep time ($16 at $50/hr)
+
+![MEDDPICC Call Analyzer](screenshots/meddpicc.png)
+
+**What it does:**
+- Ingests Gong call transcripts via webhook
+- Pulls opportunity context from Salesforce
+- AI extracts all 8 MEDDPICC qualification fields:
+  - **M**etrics, **E**conomic Buyer, **D**ecision Criteria, **D**ecision Process
+  - **P**aper Process, **I**mplicate Pain, **C**hampion, **C**ompetition
+- Updates Salesforce opportunity with structured qualification data
+
+**Business Value:** 99% cost reduction on call analysis. Ensures consistent qualification data across all opportunities. Saves reps 15-20 minutes per call.
+
+---
+
 ## Installation
 
 ### Prerequisites
@@ -87,6 +105,7 @@ These workflows are designed as starting points. To connect to real systems:
 1. **Enrichment Engine:** Replace mock input with HTTP Request to your lead source, add real HubSpot/Salesforce node
 2. **Lead Router:** Connect webhook trigger to your form/CRM, replace Slack mock with real Slack node
 3. **Data Sanitizer:** Add HTTP Request to pull from your CRM, connect output to CRM update node
+4. **MEDDPICC Analyzer:** Replace mock nodes with Gong webhook trigger and Salesforce nodes for real-time call processing
 
 ---
 

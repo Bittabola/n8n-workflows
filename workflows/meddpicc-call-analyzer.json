@@ -1,0 +1,164 @@
+{
+  "name": "Showcase: MEDDPICC Call Analyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock Gong webhook payload with realistic sales call transcript\n// In production: Replace with actual Gong webhook trigger\n\nreturn [{\n  json: {\n    call_id: \"gong_call_8472615\",\n    salesforce_opportunity_id: \"006Dn000004XmRPIA0\",\n    call_date: \"2026-01-16T14:30:00Z\",\n    duration_minutes: 47,\n    participants: [\n      { name: \"Sarah Chen\", email: \"sarah@ourcompany.com\", role: \"seller\" },\n      { name: \"Michael Torres\", email: \"mtorres@acmecorp.com\", role: \"buyer\", title: \"VP of Operations\" },\n      { name: \"Jennifer Walsh\", email: \"jwalsh@acmecorp.com\", role: \"buyer\", title: \"Director of IT\" }\n    ],\n    transcript: `\nSarah: Thanks for joining today, Michael and Jennifer. I know we've been discussing how to solve your inventory visibility challenges. Before we dive in, can you remind me what success looks like for this project?\n\nMichael: Absolutely. Right now we're losing about $2.3 million annually in stockouts and overstock situations. If we can reduce that by even 40%, that's nearly a million dollars back. We also need to cut our inventory carrying costs by 20% - that's a board-level mandate for Q3.\n\nSarah: Those are clear targets. And who else needs to sign off on a project of this scope?\n\nMichael: Good question. I can approve up to $150K, but this will likely be in the $200-250K range based on our earlier conversations. So our CFO, David Kim, will need to be involved. He's pretty numbers-driven - he'll want to see a clear 18-month payback.\n\nJennifer: From the technical side, I'll be evaluating the integration capabilities. We need something that works with our SAP ERP and our warehouse management system. API-first architecture is non-negotiable for us.\n\nSarah: That makes sense. What's your timeline for making a decision?\n\nMichael: We're targeting a decision by end of February. Jennifer's team will do a technical review in the next two weeks, then we present to David in early February. If he's aligned, we go to the procurement committee.\n\nSarah: Tell me more about the procurement process.\n\nJennifer: Once we have CFO approval, procurement takes about 3-4 weeks. They'll need three vendor quotes, security questionnaire, and our legal team reviews the MSA. Standard stuff, but it can slow things down if vendors aren't prepared.\n\nSarah: I appreciate the heads up. Michael, you mentioned the stockout issue - can you walk me through how that's impacting the business day-to-day?\n\nMichael: It's painful, honestly. Last quarter we lost two major retail accounts because we couldn't fulfill orders on time. That's $400K in recurring revenue gone. Our ops team is spending 30% of their time on manual inventory reconciliation instead of strategic work. And the board is frustrated - they've called it out in three consecutive meetings.\n\nJennifer: From my side, we've tried building internal solutions but they keep breaking. My team is burnt out patching legacy systems. We need a real solution, not another band-aid.\n\nSarah: It sounds like there's real urgency here. Is there anyone internally who's championing this project?\n\nMichael: Jennifer's been the driving force, honestly. She's the one who brought this to the executive team and got budget allocated. She has David's ear on technology investments.\n\nSarah: Jennifer, that's great to hear. What would make you confident recommending us to David?\n\nJennifer: Show me the SAP integration works seamlessly in a POC. I've been burned by vendors who promise easy integration and deliver nightmares. Also, your support response times matter - we're a 24/7 operation.\n\nSarah: Understood. Last question - are you evaluating other solutions right now?\n\nMichael: We've talked to Kinaxis and Blue Yonder. Kinaxis is strong but expensive - probably 40% more than your ballpark. Blue Yonder has a longer implementation timeline than we'd like. You're our front-runner right now because of the integration flexibility Jennifer mentioned.\n\nSarah: Thank you both for the transparency. Let me summarize next steps...\n`\n  }\n}];"
+      },
+      "id": "mock-gong",
+      "name": "Mock Gong Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock Salesforce opportunity data\n// In production: Replace with Salesforce node using the opportunity ID from Gong\n\nconst gongData = $input.first().json;\n\nreturn [{\n  json: {\n    ...gongData,\n    salesforce_data: {\n      opportunity_id: gongData.salesforce_opportunity_id,\n      opportunity_name: \"Acme Corp - Inventory Management Platform\",\n      account_name: \"Acme Corporation\",\n      stage: \"Proposal/Price Quote\",\n      amount: 225000,\n      close_date: \"2026-03-15\",\n      owner: \"Sarah Chen\",\n      account_industry: \"Manufacturing\",\n      account_employees: 2500,\n      existing_meddpicc: {\n        metrics: \"\",\n        economic_buyer: \"\",\n        decision_criteria: \"\",\n        decision_process: \"\",\n        paper_process: \"\",\n        implicate_pain: \"\",\n        champion: \"\",\n        competition: \"\"\n      }\n    }\n  }\n}];"
+      },
+      "id": "mock-salesforce-pull",
+      "name": "Mock Salesforce Pull",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [448, 400]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a sales intelligence analyst specializing in MEDDPICC qualification framework extraction from sales call transcripts.\n\nAnalyze the transcript and extract MEDDPICC fields. For each field, provide a concise but complete summary based ONLY on what was explicitly discussed in the call. If a field was not discussed, respond with \"Not discussed in this call.\"\n\nRespond with ONLY valid JSON, no markdown formatting or code blocks."
+            },
+            {
+              "content": "=Analyze this sales call transcript and extract MEDDPICC qualification data.\n\n**Opportunity Context:**\n- Account: {{ $json.salesforce_data.account_name }}\n- Deal Size: ${{ $json.salesforce_data.amount.toLocaleString() }}\n- Stage: {{ $json.salesforce_data.stage }}\n\n**Call Transcript:**\n{{ $json.transcript }}\n\n---\n\nExtract and return a JSON object with these exact keys:\n\n{\n  \"metrics\": \"Quantifiable business outcomes the prospect wants to achieve (numbers, percentages, dollar amounts)\",\n  \"economic_buyer\": \"Person with final budget authority - name, title, and approval limits if mentioned\",\n  \"decision_criteria\": \"Technical and business requirements they'll use to evaluate solutions\",\n  \"decision_process\": \"Steps, timeline, and people involved in making the decision\",\n  \"paper_process\": \"Procurement, legal, security review steps and timeline\",\n  \"implicate_pain\": \"Business problems and their impact - quantified where possible\",\n  \"champion\": \"Internal advocate - name, title, influence, and what they need to recommend us\",\n  \"competition\": \"Other vendors being evaluated, their strengths/weaknesses vs us\"\n}\n\nBe specific and include names, numbers, and dates where mentioned."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-meddpicc",
+      "name": "AI MEDDPICC Extractor",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [672, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response and structure for Salesforce update\nconst item = $input.first();\nconst originalData = item.json;\n\ntry {\n  // Get AI response\n  let aiResponse = originalData.message?.content || '{}';\n  \n  // Clean up markdown if present\n  aiResponse = aiResponse.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n  \n  // Parse MEDDPICC fields\n  const meddpicc = JSON.parse(aiResponse);\n  \n  return [{\n    json: {\n      opportunity_id: originalData.salesforce_opportunity_id,\n      opportunity_name: originalData.salesforce_data?.opportunity_name,\n      call_id: originalData.call_id,\n      call_date: originalData.call_date,\n      extracted_meddpicc: {\n        Metrics__c: meddpicc.metrics || 'Not discussed',\n        Economic_Buyer__c: meddpicc.economic_buyer || 'Not discussed',\n        Decision_Criteria__c: meddpicc.decision_criteria || 'Not discussed',\n        Decision_Process__c: meddpicc.decision_process || 'Not discussed',\n        Paper_Process__c: meddpicc.paper_process || 'Not discussed',\n        Implicate_Pain__c: meddpicc.implicate_pain || 'Not discussed',\n        Champion__c: meddpicc.champion || 'Not discussed',\n        Competition__c: meddpicc.competition || 'Not discussed'\n      },\n      extraction_timestamp: new Date().toISOString(),\n      confidence: 'high'\n    }\n  }];\n} catch (error) {\n  return [{\n    json: {\n      opportunity_id: originalData.salesforce_opportunity_id,\n      error: 'Failed to parse MEDDPICC extraction',\n      raw_response: originalData.message?.content\n    }\n  }];\n}"
+      },
+      "id": "parse-meddpicc",
+      "name": "Parse MEDDPICC Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simulates Salesforce opportunity update\n// In production: Replace with Salesforce node to update opportunity fields\n\nconst data = $input.first().json;\n\nreturn [{\n  json: {\n    status: \"success\",\n    action: \"salesforce_opportunity_update\",\n    opportunity_id: data.opportunity_id,\n    opportunity_name: data.opportunity_name,\n    fields_updated: Object.keys(data.extracted_meddpicc),\n    timestamp: new Date().toISOString(),\n    meddpicc_summary: data.extracted_meddpicc,\n    message: `Successfully updated MEDDPICC fields for opportunity ${data.opportunity_id}`\n  }\n}];"
+      },
+      "id": "mock-sf-update",
+      "name": "Update Salesforce (Simulated)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "content": "## MEDDPICC Call Analyzer\nAutomatically extracts sales qualification data from Gong call transcripts and updates Salesforce",
+        "height": 100,
+        "width": 400,
+        "color": 4
+      },
+      "id": "sticky-title",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [384, 144]
+    },
+    {
+      "parameters": {
+        "content": "**Production:** Replace with\nGong Webhook trigger",
+        "height": 80,
+        "width": 200,
+        "color": 6
+      },
+      "id": "sticky-gong",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [160, 288]
+    },
+    {
+      "parameters": {
+        "content": "**Production:** Salesforce\nGet Opportunity node",
+        "height": 80,
+        "width": 200,
+        "color": 6
+      },
+      "id": "sticky-sf-pull",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [384, 288]
+    },
+    {
+      "parameters": {
+        "content": "**Production:** Salesforce\nUpdate Opportunity node",
+        "height": 80,
+        "width": 200,
+        "color": 6
+      },
+      "id": "sticky-sf-update",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1072, 288]
+    },
+    {
+      "parameters": {
+        "content": "## 📐 Architecture & Design Decisions\n\n**Problem Solved:**\nAutomates MEDDPICC qualification extraction\nSaves reps 15-20 min per call on manual notes\nEnsures consistent CRM data quality\n\n**MEDDPICC Fields Extracted:**\n- **M**etrics: Quantified success criteria\n- **E**conomic Buyer: Budget authority\n- **D**ecision Criteria: Evaluation factors\n- **D**ecision Process: Timeline & steps\n- **P**aper Process: Procurement flow\n- **I**mplicate Pain: Business impact\n- **C**hampion: Internal advocate\n- **C**ompetition: Competitive landscape\n\n**Technical Approach:**\n- Gong webhook triggers on call end\n- Salesforce ID passed from Gong\n- AI extracts structured MEDDPICC\n- Direct Salesforce field update\n\n**Cost Analysis:**\n- ~$0.01-0.02 per call (GPT-5-mini)\n- vs. 20 min rep time @ $50/hr = $16\n- 99% cost reduction per call\n\n**Production Checklist:**\n□ Add Gong webhook trigger\n□ Configure Salesforce credentials\n□ Map MEDDPICC custom fields\n□ Add error notifications",
+        "height": 780,
+        "width": 320,
+        "color": 7
+      },
+      "id": "sticky-design-notes",
+      "name": "Design Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1360, 80]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Mock Gong Webhook", "type": "main", "index": 0}]]
+    },
+    "Mock Gong Webhook": {
+      "main": [[{"node": "Mock Salesforce Pull", "type": "main", "index": 0}]]
+    },
+    "Mock Salesforce Pull": {
+      "main": [[{"node": "AI MEDDPICC Extractor", "type": "main", "index": 0}]]
+    },
+    "AI MEDDPICC Extractor": {
+      "main": [[{"node": "Parse MEDDPICC Response", "type": "main", "index": 0}]]
+    },
+    "Parse MEDDPICC Response": {
+      "main": [[{"node": "Update Salesforce (Simulated)", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
