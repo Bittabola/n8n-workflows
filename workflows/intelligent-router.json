@@ -260,9 +260,9 @@
     "Territory & Size Router": {
       "main": [
         [{"node": "Round Robin Assignment", "type": "main", "index": 0}],
-        [{"node": "SMB NA Assignment", "type": "main", "index": 0}],
-        [],
-        [{"node": "ROW Assignment", "type": "main", "index": 0}]
+        [{\"node\": \"SMB NA Assignment\", \"type\": \"main\", \"index\": 0}],
+        [{\"node\": \"SMB NA Assignment\", \"type\": \"main\", \"index\": 0}],
+        [{\"node\": \"ROW Assignment\", \"type\": \"main\", \"index\": 0}]
       ]
     },
     "Round Robin Assignment": {
