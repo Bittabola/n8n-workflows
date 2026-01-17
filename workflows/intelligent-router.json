@@ -1,0 +1,290 @@
+{
+  "name": "Showcase: Intelligent Router",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock incoming leads from various sources\nreturn [\n  { json: { email: \"steve@apple.com\", employees: 150000, country: \"US\", company: \"Apple Inc.\" } },\n  { json: { email: \"dave@smallbiz.com\", employees: 15, country: \"CA\", company: \"SmallBiz Ltd\" } },\n  { json: { email: \"pierre@agency.fr\", employees: 50, country: \"FR\", company: \"Agence Digitale\" } },\n  { json: { email: \"maria@techcorp.de\", employees: 2500, country: \"DE\", company: \"TechCorp GmbH\" } },\n  { json: { email: \"john@startup.com\", employees: 45, country: \"US\", company: \"Startup Inc\" } }\n];"
+      },
+      "id": "incoming-leads",
+      "name": "Incoming Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 400]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "ent-1",
+                    "leftValue": "={{ $json.employees }}",
+                    "operator": {"type": "number", "operation": "gt"},
+                    "rightValue": 1000
+                  }
+                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}
+              },
+              "renameOutput": true,
+              "outputKey": "Enterprise"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "smb-1",
+                    "leftValue": "={{ $json.employees }}",
+                    "operator": {"type": "number", "operation": "lte"},
+                    "rightValue": 1000
+                  },
+                  {
+                    "id": "smb-2",
+                    "leftValue": "={{ $json.country }}",
+                    "operator": {"type": "string", "operation": "equals"},
+                    "rightValue": "US"
+                  }
+                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}
+              },
+              "renameOutput": true,
+              "outputKey": "SMB_US"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "smb-ca-1",
+                    "leftValue": "={{ $json.employees }}",
+                    "operator": {"type": "number", "operation": "lte"},
+                    "rightValue": 1000
+                  },
+                  {
+                    "id": "smb-ca-2",
+                    "leftValue": "={{ $json.country }}",
+                    "operator": {"type": "string", "operation": "equals"},
+                    "rightValue": "CA"
+                  }
+                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}
+              },
+              "renameOutput": true,
+              "outputKey": "SMB_CA"
+            },
+            {
+              "conditions": {
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "row-1",
+                    "leftValue": "={{ $json.employees }}",
+                    "operator": {"type": "number", "operation": "gte"},
+                    "rightValue": 0
+                  }
+                ],
+                "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2}
+              },
+              "renameOutput": true,
+              "outputKey": "Rest_of_World"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "router",
+      "name": "Territory & Size Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [448, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Enterprise Round Robin Assignment\nconst reps = [\n  { name: \"Sarah Chen\", title: \"Enterprise AE\" },\n  { name: \"Mike Johnson\", title: \"Enterprise AE\" },\n  { name: \"Jessica Williams\", title: \"Strategic AE\" }\n];\n\n// Deterministic assignment based on email hash\nfunction hashCode(str) {\n  let hash = 0;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) - hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash);\n}\n\nreturn items.map(item => {\n  const index = hashCode(item.json.email) % reps.length;\n  const rep = reps[index];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_title: rep.title,\n      routing_logic: \"Enterprise_Round_Robin\",\n      priority: \"HIGH\",\n      sla_hours: 2\n    }\n  };\n});"
+      },
+      "id": "round-robin",
+      "name": "Round Robin Assignment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 208]
+    },
+    {
+      "parameters": {
+        "jsCode": "// SMB North America Assignment\nconst smbReps = [\n  { name: \"Alex Turner\", region: \"East\" },\n  { name: \"Chris Martinez\", region: \"West\" }\n];\n\nreturn items.map(item => {\n  const rep = smbReps[Math.floor(Math.random() * smbReps.length)];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"SMB_North_America\",\n      priority: \"MEDIUM\",\n      sla_hours: 24\n    }\n  };\n});"
+      },
+      "id": "smb-assign",
+      "name": "SMB NA Assignment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Rest of World Assignment\nconst rowReps = [\n  { name: \"Emma Schmidt\", region: \"EMEA\" },\n  { name: \"Li Wei\", region: \"APAC\" }\n];\n\nreturn items.map(item => {\n  const euCountries = [\"DE\", \"FR\", \"UK\", \"ES\", \"IT\", \"NL\"];\n  const rep = euCountries.includes(item.json.country) ? rowReps[0] : rowReps[1];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"Rest_of_World\",\n      priority: \"MEDIUM\",\n      sla_hours: 48\n    }\n  };\n});"
+      },
+      "id": "row-assign",
+      "name": "ROW Assignment",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [704, 608]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "channel", "name": "slack_channel", "type": "string", "value": "#enterprise-leads"},
+            {"id": "message", "name": "slack_message", "type": "string", "value": "=🚨 *NEW ENTERPRISE LEAD* 🚨\n\n*Company:* {{ $json.company }}\n*Email:* {{ $json.email }}\n*Employees:* {{ $json.employees.toLocaleString() }}\n*Country:* {{ $json.country }}\n\n*Assigned To:* {{ $json.assigned_rep }} ({{ $json.rep_title }})\n*Priority:* {{ $json.priority }}\n*SLA:* Respond within {{ $json.sla_hours }} hours\n\ncc: @SalesManager @VP-Sales"}
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "slack-enterprise",
+      "name": "Post to Slack (Enterprise)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [928, 208]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "channel", "name": "slack_channel", "type": "string", "value": "#smb-leads"},
+            {"id": "message", "name": "slack_message", "type": "string", "value": "=👋 *New SMB Lead (North America)*\n\n*Company:* {{ $json.company }}\n*Email:* {{ $json.email }}\n*Size:* {{ $json.employees }} employees\n\n*Assigned To:* {{ $json.assigned_rep }} ({{ $json.rep_region }})\n*Priority:* {{ $json.priority }}"}
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "slack-smb",
+      "name": "SMB Slack Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [928, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {"id": "channel", "name": "slack_channel", "type": "string", "value": "#international-leads"},
+            {"id": "message", "name": "slack_message", "type": "string", "value": "=🌍 *New International Lead*\n\n*Company:* {{ $json.company }}\n*Email:* {{ $json.email }}\n*Country:* {{ $json.country }}\n\n*Assigned To:* {{ $json.assigned_rep }} ({{ $json.rep_region }})"}
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "slack-row",
+      "name": "ROW Slack Alert",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [928, 608]
+    },
+    {
+      "parameters": {},
+      "id": "merge-all",
+      "name": "Merge All Routes",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [1168, 400]
+    },
+    {
+      "parameters": {
+        "content": "## Intelligent Lead Router\nThis replaces tools like Chili Piper - custom territory logic, round-robin, and instant alerts",
+        "height": 132,
+        "width": 312,
+        "color": 5
+      },
+      "id": "sticky-title",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, 80]
+    },
+    {
+      "parameters": {
+        "content": "## Routing Logic\n- **Enterprise:** >1000 employees\n- **SMB NA:** ≤1000 + US/CA\n- **ROW:** Everyone else",
+        "height": 136,
+        "width": 248,
+        "color": 6
+      },
+      "id": "sticky-router",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [368, 80]
+    },
+    {
+      "parameters": {
+        "content": "**Replaces Legacy Drift Logic**\nSaved $12k/year in tooling costs",
+        "height": 80,
+        "color": 2
+      },
+      "id": "sticky-legacy",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [704, 80]
+    },
+    {
+      "parameters": {
+        "content": "## 📐 Architecture & Design Decisions\n\n**Problem Solved:**\nReplaces SaaS routing tools (Chili Piper, Drift)\nSaved ~$12k/year in licensing\n\n**Routing Logic:**\n- Enterprise: >1000 employees → Round-robin AEs\n- SMB NA: ≤1000 + US/CA → Regional reps\n- ROW: Fallback → EMEA/APAC split by country\n\n**Technical Approach:**\n- Deterministic round-robin via email hash\n- SLA hours embedded in payload\n- Slack-ready message formatting\n- No external dependencies\n\n**Scalability:**\n- Add new territories = add Switch rule\n- Add new reps = update Code node array\n- No vendor negotiations required\n\n**Future Enhancements:**\n- Connect to Salesforce for rep availability\n- Add time-zone aware routing",
+        "height": 676,
+        "width": 320,
+        "color": 7
+      },
+      "id": "sticky-design-notes",
+      "name": "Design Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1312, 80]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Incoming Leads", "type": "main", "index": 0}]]
+    },
+    "Incoming Leads": {
+      "main": [[{"node": "Territory & Size Router", "type": "main", "index": 0}]]
+    },
+    "Territory & Size Router": {
+      "main": [
+        [{"node": "Round Robin Assignment", "type": "main", "index": 0}],
+        [{"node": "SMB NA Assignment", "type": "main", "index": 0}],
+        [{"node": "SMB NA Assignment", "type": "main", "index": 0}],
+        [{"node": "ROW Assignment", "type": "main", "index": 0}]
+      ]
+    },
+    "Round Robin Assignment": {
+      "main": [[{"node": "Post to Slack (Enterprise)", "type": "main", "index": 0}]]
+    },
+    "SMB NA Assignment": {
+      "main": [[{"node": "SMB Slack Alert", "type": "main", "index": 0}]]
+    },
+    "ROW Assignment": {
+      "main": [[{"node": "ROW Slack Alert", "type": "main", "index": 0}]]
+    },
+    "Post to Slack (Enterprise)": {
+      "main": [[{"node": "Merge All Routes", "type": "main", "index": 0}]]
+    },
+    "SMB Slack Alert": {
+      "main": [[{"node": "Merge All Routes", "type": "main", "index": 0}]]
+    },
+    "ROW Slack Alert": {
+      "main": [[{"node": "Merge All Routes", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

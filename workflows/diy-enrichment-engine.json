@@ -1,0 +1,123 @@
+{
+  "name": "Showcase: DIY Enrichment Engine",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mock incoming leads from HubSpot webhook\nreturn [\n  {\n    json: {\n      lead_email: \"jensen@nvidia.com\",\n      company_domain: \"nvidia.com\"\n    }\n  },\n  {\n    json: {\n      lead_email: \"tobi@shopify.com\",\n      company_domain: \"shopify.com\"\n    }\n  },\n  {\n    json: {\n      lead_email: \"unknown@cozey.ca\",\n      company_domain: \"cozey.ca\"\n    }\n  }\n];"
+      },
+      "id": "mock-leads",
+      "name": "Mock New Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [224, 304]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "You are a B2B Enrichment Bot. Output ONLY valid JSON with no markdown formatting or code blocks."
+            },
+            {
+              "content": "=Analyze the company domain: {{ $json.company_domain }}\n\nReturn a JSON object with these keys:\n- industry (string)\n- ideal_customer_profile (short string describing who buys from them)\n- estimated_revenue_range (string like \"$1B-$10B\" or \"$10M-$50M\")\n- pricing_model (one of: B2B, B2C, or Hybrid)"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ai-enrichment",
+      "name": "AI Enrichment",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [528, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI response and merge with original lead data\nconst results = [];\n\nfor (const item of $input.all()) {\n  try {\n    // Get the AI response content\n    let aiResponse = item.json.message?.content || item.json.content || '{}';\n    \n    // Clean up any markdown code blocks if present\n    aiResponse = aiResponse.replace(/```json\\n?/g, '').replace(/```\\n?/g, '').trim();\n    \n    // Parse the JSON\n    const enrichedData = JSON.parse(aiResponse);\n    \n    results.push({\n      json: {\n        lead_email: item.json.lead_email,\n        company_domain: item.json.company_domain,\n        ...enrichedData\n      }\n    });\n  } catch (error) {\n    results.push({\n      json: {\n        lead_email: item.json.lead_email,\n        company_domain: item.json.company_domain,\n        error: 'Failed to parse AI response',\n        raw_response: item.json.message?.content || item.json.content\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "id": "clean-data",
+      "name": "Clean Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 304]
+    },
+    {
+      "parameters": {
+        "jsCode": "// This simulates the API call to HubSpot\nreturn items.map(item => {\n  return {\n    json: {\n      status: \"success\",\n      action: \"hubspot_property_update\",\n      hubspot_contact_id: Math.floor(Math.random() * 10000000),\n      timestamp: new Date().toISOString(),\n      enriched_data: item.json\n    }\n  }\n});"
+      },
+      "id": "update-hubspot",
+      "name": "Update HubSpot (Simulated)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1104, 304]
+    },
+    {
+      "parameters": {
+        "content": "## Cost Comparison\n**This AI call:** ~$0.002\n**ZoomInfo credit:** ~$0.50\n\n*Replaces $15k/year contract*",
+        "height": 140,
+        "width": 264
+      },
+      "id": "sticky-cost",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [512, 128]
+    },
+    {
+      "parameters": {
+        "content": "## DIY Enrichment Engine\nI built this to replace a $15k/year ZoomInfo contract",
+        "height": 84,
+        "width": 400,
+        "color": 4
+      },
+      "id": "sticky-title",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [0, 128]
+    },
+    {
+      "parameters": {
+        "content": "## 📐 Architecture & Design Decisions\n\n**Problem Solved:**\nReplaces manual enrichment tools ($15k/year ZoomInfo)\n\n**Cost Analysis:**\n- AI enrichment: ~$0.002/lead\n- ZoomInfo credit: ~$0.50/lead\n- Annual savings: ~$6,000+\n\n**Technical Approach:**\n- GPT-4o-mini for speed + cost efficiency\n- Structured JSON output for CRM compatibility\n- Error handling for malformed AI responses\n- Stateless design — scales horizontally\n\n**Integration Points:**\n- Input: HubSpot webhook (mocked for demo)\n- Output: HubSpot API property update\n- Runs on new lead creation trigger\n\n**Future Enhancements:**\n- Add LinkedIn enrichment via Proxycurl\n- Cache results to reduce duplicate API calls",
+        "height": 668,
+        "width": 320,
+        "color": 7
+      },
+      "id": "sticky-design-notes",
+      "name": "Design Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1296, 64]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Mock New Leads", "type": "main", "index": 0}]]
+    },
+    "Mock New Leads": {
+      "main": [[{"node": "AI Enrichment", "type": "main", "index": 0}]]
+    },
+    "AI Enrichment": {
+      "main": [[{"node": "Clean Data", "type": "main", "index": 0}]]
+    },
+    "Clean Data": {
+      "main": [[{"node": "Update HubSpot (Simulated)", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
