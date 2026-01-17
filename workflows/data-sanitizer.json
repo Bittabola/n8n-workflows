@@ -21,7 +21,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// ====== EASY TO EDIT: Standard Job Title Tiers ======\n// Add, remove, or modify tiers here. The rest of the workflow adapts automatically.\n\nconst STANDARD_TIERS = [\n  { \n    name: \"Executive\", \n    examples: \"C-level, founders, presidents\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Vice President\", \n    examples: \"VPs, SVPs, EVPs\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Director\", \n    examples: \"Directors, Heads of\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Manager\", \n    examples: \"Managers, Team Leads\", \n    is_decision_maker: false \n  },\n  { \n    name: \"Individual Contributor\", \n    examples: \"Reps, Associates, Specialists, Analysts\", \n    is_decision_maker: false \n  }\n];\n\n// Build the prompt list\nconst prompt_list = STANDARD_TIERS.map(t => \n  `\"${t.name}\" - examples: ${t.examples}`\n).join('\\n');\n\n// Output the configuration\nreturn [{\n  json: {\n    tiers: STANDARD_TIERS,\n    tier_names: STANDARD_TIERS.map(t => t.name),\n    decision_maker_tiers: STANDARD_TIERS.filter(t => t.is_decision_maker).map(t => t.name),\n    prompt_list: prompt_list\n  }\n}];"
+        "jsCode": "// ====== EASY TO EDIT: Standard Job Title Tiers ======\n// Add, remove, or modify tiers here. The rest of the workflow adapts automatically.\n\nconst STANDARD_TIERS = [\n  { \n    name: \"Executive\", \n    examples: \"C-level, founders, presidents\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Vice President\", \n    examples: \"VPs, SVPs, EVPs\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Director\", \n    examples: \"Directors, Heads of\", \n    is_decision_maker: true \n  },\n  { \n    name: \"Manager\", \n    examples: \"Managers, Team Leads\", \n    is_decision_maker: false \n  },\n  { \n    name: \"Individual Contributor\", \n    examples: \"Reps, Associates, Specialists, Analysts\", \n    is_decision_maker: false \n  }\n];\n\n// Build the prompt list - show tier names clearly separated from examples\nconst prompt_list = STANDARD_TIERS.map(t => \n  `\"${t.name}\" - examples: ${t.examples}`\n).join('\\n');\n\n// Output the configuration\nreturn [{\n  json: {\n    tiers: STANDARD_TIERS,\n    tier_names: STANDARD_TIERS.map(t => t.name),\n    decision_maker_tiers: STANDARD_TIERS.filter(t => t.is_decision_maker).map(t => t.name),\n    prompt_list: prompt_list\n  }\n}];"
       },
       "id": "tiers-config",
       "name": "Standard Tiers Config",
@@ -45,8 +45,9 @@
       "parameters": {
         "modelId": {
           "__rl": true,
-          "value": "gpt-4o-mini",
-          "mode": "list"
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
         },
         "messages": {
           "values": [
@@ -123,7 +124,7 @@
     },
     {
       "parameters": {
-        "content": "## After\n- Vice President\n- Individual Contributor\n- Manager",
+        "content": "## After\n- Vice President\n- Individual Contributor  \n- Manager",
         "height": 184,
         "width": 244,
         "color": 4
@@ -136,7 +137,7 @@
     },
     {
       "parameters": {
-        "content": "**Cost:**\n~$0.001 per title\nRuns 24/7, no human review needed",
+        "content": "**Cost:** \n~$0.001 per title\nRuns 24/7, no human review needed",
         "height": 192
       },
       "id": "sticky-cost",
@@ -165,7 +166,7 @@
         "width": 320,
         "color": 7
       },
-      "id": "sticky-design-notes",
+      "id": "sticky-talking-points",
       "name": "Design Notes",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

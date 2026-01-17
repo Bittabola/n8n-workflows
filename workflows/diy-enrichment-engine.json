@@ -23,8 +23,9 @@
       "parameters": {
         "modelId": {
           "__rl": true,
-          "value": "gpt-4o-mini",
-          "mode": "list"
+          "value": "gpt-5-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-5-MINI"
         },
         "messages": {
           "values": [
@@ -96,7 +97,7 @@
         "width": 320,
         "color": 7
       },
-      "id": "sticky-design-notes",
+      "id": "sticky-talking-points",
       "name": "Design Notes",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,

@@ -111,7 +111,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Enterprise Round Robin Assignment\nconst reps = [\n  { name: \"Sarah Chen\", title: \"Enterprise AE\" },\n  { name: \"Mike Johnson\", title: \"Enterprise AE\" },\n  { name: \"Jessica Williams\", title: \"Strategic AE\" }\n];\n\n// Deterministic assignment based on email hash\nfunction hashCode(str) {\n  let hash = 0;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) - hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash);\n}\n\nreturn items.map(item => {\n  const index = hashCode(item.json.email) % reps.length;\n  const rep = reps[index];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_title: rep.title,\n      routing_logic: \"Enterprise_Round_Robin\",\n      priority: \"HIGH\",\n      sla_hours: 2\n    }\n  };\n});"
+        "jsCode": "// Enterprise Round Robin Assignment\nconst reps = [\n  { name: \"Sarah Chen\", title: \"Enterprise AE\" },\n  { name: \"Mike Johnson\", title: \"Enterprise AE\" },\n  { name: \"Jessica Williams\", title: \"Strategic AE\" }\n];\n\n// In production, we'd track last_assigned_index in a database\n// For demo, we use a deterministic assignment based on email hash\nfunction hashCode(str) {\n  let hash = 0;\n  for (let i = 0; i < str.length; i++) {\n    hash = ((hash << 5) - hash) + str.charCodeAt(i);\n    hash = hash & hash;\n  }\n  return Math.abs(hash);\n}\n\nreturn items.map(item => {\n  const index = hashCode(item.json.email) % reps.length;\n  const rep = reps[index];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_title: rep.title,\n      routing_logic: \"Enterprise_Round_Robin\",\n      priority: \"HIGH\",\n      sla_hours: 2\n    }\n  };\n});"
       },
       "id": "round-robin",
       "name": "Round Robin Assignment",
@@ -121,7 +121,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// SMB North America Assignment\nconst smbReps = [\n  { name: \"Alex Turner\", region: \"East\" },\n  { name: \"Chris Martinez\", region: \"West\" }\n];\n\nreturn items.map(item => {\n  const rep = smbReps[Math.floor(Math.random() * smbReps.length)];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"SMB_North_America\",\n      priority: \"MEDIUM\",\n      sla_hours: 24\n    }\n  };\n});"
+        "jsCode": "// SMB North America Assignment\nconst smbReps = [\n  { name: \"Alex Turner\", region: \"East\" },\n  { name: \"Chris Martinez\", region: \"West\" }\n];\n\nreturn items.map(item => {\n  // Simple East/West split for demo\n  const rep = smbReps[Math.floor(Math.random() * smbReps.length)];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"SMB_North_America\",\n      priority: \"MEDIUM\",\n      sla_hours: 24\n    }\n  };\n});"
       },
       "id": "smb-assign",
       "name": "SMB NA Assignment",
@@ -131,7 +131,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Rest of World Assignment\nconst rowReps = [\n  { name: \"Emma Schmidt\", region: \"EMEA\" },\n  { name: \"Li Wei\", region: \"APAC\" }\n];\n\nreturn items.map(item => {\n  const euCountries = [\"DE\", \"FR\", \"UK\", \"ES\", \"IT\", \"NL\"];\n  const rep = euCountries.includes(item.json.country) ? rowReps[0] : rowReps[1];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"Rest_of_World\",\n      priority: \"MEDIUM\",\n      sla_hours: 48\n    }\n  };\n});"
+        "jsCode": "// Rest of World Assignment\nconst rowReps = [\n  { name: \"Emma Schmidt\", region: \"EMEA\" },\n  { name: \"Li Wei\", region: \"APAC\" }\n];\n\nreturn items.map(item => {\n  // Europe goes to EMEA rep\n  const euCountries = [\"DE\", \"FR\", \"UK\", \"ES\", \"IT\", \"NL\"];\n  const rep = euCountries.includes(item.json.country) ? rowReps[0] : rowReps[1];\n  \n  return {\n    json: {\n      ...item.json,\n      assigned_rep: rep.name,\n      rep_region: rep.region,\n      routing_logic: \"Rest_of_World\",\n      priority: \"MEDIUM\",\n      sla_hours: 48\n    }\n  };\n});"
       },
       "id": "row-assign",
       "name": "ROW Assignment",
@@ -161,7 +161,7 @@
         "assignments": {
           "assignments": [
             {"id": "channel", "name": "slack_channel", "type": "string", "value": "#smb-leads"},
-            {"id": "message", "name": "slack_message", "type": "string", "value": "=👋 *New SMB Lead (North America)*\n\n*Company:* {{ $json.company }}\n*Email:* {{ $json.email }}\n*Size:* {{ $json.employees }} employees\n\n*Assigned To:* {{ $json.assigned_rep }} ({{ $json.rep_region }})\n*Priority:* {{ $json.priority }}"}
+            {"id": "message", "name": "slack_message", "type": "string", "value": "=👋 *New SMB Lead (North America)* \n\n*Company:* {{ $json.company }}\n*Email:* {{ $json.email }}\n*Size:* {{ $json.employees }} employees\n\n*Assigned To:* {{ $json.assigned_rep }} ({{ $json.rep_region }})\n*Priority:* {{ $json.priority }}"}
           ]
         },
         "includeOtherFields": true,
@@ -243,7 +243,7 @@
         "width": 320,
         "color": 7
       },
-      "id": "sticky-design-notes",
+      "id": "sticky-talking-points",
       "name": "Design Notes",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -261,7 +261,7 @@
       "main": [
         [{"node": "Round Robin Assignment", "type": "main", "index": 0}],
         [{"node": "SMB NA Assignment", "type": "main", "index": 0}],
-        [{"node": "SMB NA Assignment", "type": "main", "index": 0}],
+        [],
         [{"node": "ROW Assignment", "type": "main", "index": 0}]
       ]
     },
