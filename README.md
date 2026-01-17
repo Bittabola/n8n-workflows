@@ -2,7 +2,7 @@
 *Custom n8n agents replacing commercial SaaS tools, saving $100k+ in annual platform costs.*
 
 ![n8n](https://img.shields.io/badge/n8n-Workflow_Automation-FF6D5A?style=for-the-badge&logo=n8n&logoColor=white)
-![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?style=for-the-badge&logo=openai&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--5.2-412991?style=for-the-badge&logo=openai&logoColor=white)
 ![HubSpot](https://img.shields.io/badge/HubSpot-CRM_Integration-FF7A59?style=for-the-badge&logo=hubspot&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-Code_Nodes-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
@@ -21,7 +21,7 @@
 
 ### 1. DIY Enrichment Engine
 **Location:** `/workflows/enrichment/diy-enrichment-engine.json`  
-**Replaces:** ZoomInfo, Clearbit, Apollo enrichment ($15k+/year)  
+**Replaces:** ZoomInfo, Clearbit, Apollo enrichment ($15k+/year platform minimum)  
 **Cost:** ~$0.002 per enrichment vs $0.50 per ZoomInfo credit
 
 ![DIY Enrichment Engine](assets/enrichment.png)
@@ -31,13 +31,13 @@
 - AI enriches with industry, ICP fit, revenue range, and pricing model
 - Formats data for CRM update (HubSpot-ready structure)
 
-**Business Value:** 99.6% cost reduction on data enrichment. A team doing 10,000 enrichments/month saves ~$5,000/month.
+**Business Value:** 99.6% cost reduction on data enrichment. A team doing 10,000 enrichments/month saves ~$5,000/month (vs ZoomInfo's ~$15k annual minimum).
 
 ---
 
 ### 2. Intelligent Lead Router
 **Location:** `/workflows/routing/intelligent-router.json`  
-**Replaces:** Chili Piper, Drift routing, LeanData ($12k+/year)  
+**Replaces:** Chili Piper ($30/user/mo + $150-$1000/mo platform fee), LeanData ($4k+ min)  
 **Cost:** $0 (runs on your n8n instance)
 
 ![Intelligent Lead Router](assets/router.png)
@@ -49,7 +49,7 @@
 - Rest of World → EMEA/APAC split
 - Generates Slack-formatted assignment alerts
 
-**Business Value:** Instant lead routing with zero per-seat licensing. Scales infinitely without additional cost.
+**Business Value:** Instant lead routing with zero per-seat licensing. Eliminates Chili Piper's ~$12k/year cost for a 10-person team (licenses + platform fees).
 
 ---
 
@@ -72,8 +72,8 @@
 
 ### 4. MEDDPICC Call Analyzer
 **Location:** `/workflows/analysis/meddpicc-call-analyzer.json`  
-**Replaces:** Manual call note-taking, qualification tracking  
-**Cost:** ~$0.01-0.02 per call vs 20 min rep time ($16 at $50/hr)
+**Replaces:** Gong (~$120/user/mo + $5k platform fee), Manual note-taking  
+**Cost:** ~$0.01-0.02 per call vs Gong's ~$1,400/year per seat
 
 ![MEDDPICC Call Analyzer](assets/meddpicc.png)
 
@@ -85,7 +85,7 @@
   - **P**aper Process, **I**mplicate Pain, **C**hampion, **C**ompetition
 - Updates Salesforce opportunity with structured qualification data
 
-**Business Value:** 99% cost reduction on call analysis. Ensures consistent qualification data across all opportunities. Saves reps 15-20 minutes per call.
+**Business Value:** 99% cost reduction on call analysis. Replicates Gong's core "Deal Intelligence" features without the $5k+ platform fee. Saves reps 15-20 minutes per call.
 
 ---
 
